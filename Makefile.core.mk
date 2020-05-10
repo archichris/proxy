@@ -63,12 +63,14 @@ endif
 
 BAZEL_OUTPUT_PATH = $(shell bazel info $(BAZEL_BUILD_ARGS) output_path)
 BAZEL_ENVOY_PATH ?= $(BAZEL_OUTPUT_PATH)/k8-fastbuild/bin/src/envoy/envoy
+# OVERRIDE_ENVOY ?= "--override_repository=envoy=$(realpath ../envoy)"
+BAZEL_JVM_PKI = --host_jvm_args=-Djavax.net.ssl.trustStore="$(JAVA_HOME)/lib/security/cacerts" --host_jvm_args=-Djavax.net.ssl.trustStorePassword='changeit'
 
 build:
 	export PATH=$(PATH) CC=$(CC) CXX=$(CXX) && bazel $(BAZEL_STARTUP_ARGS) build $(BAZEL_BUILD_ARGS) $(BAZEL_CONFIG_DEV) $(BAZEL_TARGETS)
 
 build_envoy:
-	export PATH=$(PATH) CC=$(CC) CXX=$(CXX) && bazel $(BAZEL_STARTUP_ARGS) build $(BAZEL_BUILD_ARGS) $(BAZEL_CONFIG_REL) //src/envoy:envoy
+	export PATH=$(PATH) CC=$(CC) CXX=$(CXX) && bazel $(BAZEL_JVM_PKI) $(BAZEL_STARTUP_ARGS) build --sandbox_debug --verbose_failures $(BAZEL_BUILD_ARGS) $(BAZEL_CONFIG_REL) //src/envoy:envoy
 
 build_envoy_tsan:
 	export PATH=$(PATH) CC=$(CC) CXX=$(CXX) && bazel $(BAZEL_STARTUP_ARGS) build $(BAZEL_BUILD_ARGS) $(BAZEL_CONFIG_TSAN) //src/envoy:envoy
